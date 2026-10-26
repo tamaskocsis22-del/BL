@@ -1,6 +1,6 @@
 import {authGate} from './auth.js';
 const RELAY="https://bl-live-transfer.cleareagle258.chatgpt.site";
-export default {async fetch(request,env){const u=new URL(request.url);const gate=await authGate(request,env,LOCK);if(gate)return gate;if(u.pathname.startsWith('/api/live/')){
+export default {async fetch(request,env){const u=new URL(request.url);if(ASSETS[u.pathname]){if(!['GET','HEAD'].includes(request.method))return new Response('Method not allowed',{status:405});const a=ASSETS[u.pathname];return new Response(request.method==='HEAD'?null:Uint8Array.from(atob(a.data),c=>c.charCodeAt(0)),{headers:{'Content-Type':a.type,'Cache-Control':'private,max-age=3600','X-Content-Type-Options':'nosniff'}})}const gate=await authGate(request,env,LOCK);if(gate)return gate;if(u.pathname.startsWith('/api/live/')){
  if(request.method!=='POST')return new Response('Method not allowed',{status:405});
  if(request.headers.get('Origin')!==u.origin)return new Response('Forbidden',{status:403});
  if(!env.LIVE_RELAY_SECRET)return new Response(JSON.stringify({error:'LIVE not configured'}),{status:503});

@@ -1,3 +1,4 @@
+import './install-client.js';
 import {startRegistration,startAuthentication,browserSupportsWebAuthn} from '@simplewebauthn/browser';
 let working=false;
 const q=id=>document.getElementById(id);

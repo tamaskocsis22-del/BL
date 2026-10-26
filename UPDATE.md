@@ -37,3 +37,5 @@ Sites owner-only sign-in is preserved. Register a separate WebAuthn passkey insi
 Validation: real cryptographic registration/assertion fixtures through server code and SQLite; bad origin/signature/user verification, replay, missing identity, expired challenges and sessions, API gate, logout rejected/handled correctly. Hardware fingerprint enrollment requires the owner on the target phone.
 
 Opening screen: original Black Limousine logo from https://blacklimousine.hu/wp-content/uploads/2025/04/logo01.png, embedded locally on both app and lock views. Fades after 1.15 seconds with no network request or recurring timer; reduced-motion setting uses 0.2 seconds.
+
+Home-screen installation: Web App Manifest, standalone window, original-logo PNG icons at 192/512px plus Apple touch icon, in-app install prompt with manual browser fallback. This is a launch icon/PWA, not a native live Android widget. No service worker caches private pages or changes GPS background limitations. Installation must be approved on the user device.

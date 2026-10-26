@@ -4,8 +4,10 @@ const client=await build({entryPoints:['scripts/passkey-client.js'],bundle:true,
 const script='<script>'+client.outputFiles[0].text.replace(/<\/script/gi,'<\\/script')+'</script>';
 const logo='data:image/png;base64,'+readFileSync('assets/black-limousine-logo.png').toString('base64');
 const splash=readFileSync('splash.html','utf8').replace('__BL_LOGO__',logo);
-const withSplash=s=>s.replace('</style>','</style>'+splash);
+const meta='<link rel="manifest" href="/manifest.webmanifest" crossorigin="use-credentials"><meta name="theme-color" content="#10120f"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-title" content="Black Limousine"><link rel="apple-touch-icon" href="/apple-touch-icon.png"><link rel="icon" type="image/png" href="/icon-192.png">';
+const withSplash=s=>s.replace('<style>',meta+'<style>').replace('</style>','</style>'+splash);
+const assets={};for(const name of ['icon-192.png','icon-512.png','apple-touch-icon.png'])assets['/'+name]={type:'image/png',data:readFileSync('assets/'+name).toString('base64')};assets['/manifest.webmanifest']={type:'application/manifest+json',data:readFileSync('manifest.webmanifest').toString('base64')};
 const html=withSplash(readFileSync('index.html','utf8').replace('<!--PASSKEY_SCRIPT-->',script));
 const lock=withSplash(readFileSync('lock.html','utf8').replace('<!--PASSKEY_SCRIPT-->',script));
-writeFileSync('worker/entry.js','const HTML='+JSON.stringify(html)+';\nconst LOCK='+JSON.stringify(lock)+';\nconst HERO='+readFileSync('worker/hero.json','utf8')+';\n'+readFileSync('worker/proxy.js','utf8'));
+writeFileSync('worker/entry.js','const ASSETS='+JSON.stringify(assets)+';\nconst HTML='+JSON.stringify(html)+';\nconst LOCK='+JSON.stringify(lock)+';\nconst HERO='+readFileSync('worker/hero.json','utf8')+';\n'+readFileSync('worker/proxy.js','utf8'));
 await build({entryPoints:['worker/entry.js'],outfile:'worker/index.js',bundle:true,format:'esm',platform:'browser',target:'es2022',minify:true});
