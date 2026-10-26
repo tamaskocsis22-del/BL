@@ -31,3 +31,7 @@ Selected hero: first New York generated scene; later face edits rejected by user
 
 
 Final hero: first New York man/scene. All four edges fade fully into the app background.
+
+## v0.4 – own passkey unlock
+Sites owner-only sign-in is preserved. Register a separate WebAuthn passkey inside the app to activate an additional server-enforced unlock. This is unrelated to the OpenAI account passkey. Platform authenticator and user verification are required; the device may use fingerprint, face or PIN. The app never receives biometric data. D1 stores public keys, counters, one-use 5-minute challenges and hashed opaque unlock tokens. Secure HttpOnly SameSite=Strict session cookie; maximum unlock duration 12 hours. Locked app and LIVE API routes require verification. Existing device-local records are preserved but are not encrypted by this feature. Manual lock stops foreground GPS, not elapsed work billing. Up to five keys can be registered; adding another requires current unlock. Lost all keys requires owner-assisted recovery, not a client-side bypass. No automatic first-key enrollment; the owner must tap setup and approve on their device.
+Validation: real cryptographic registration/assertion fixtures through server code and SQLite; bad origin/signature/user verification, replay, missing identity, expired challenges and sessions, API gate, logout rejected/handled correctly. Hardware fingerprint enrollment requires the owner on the target phone.
