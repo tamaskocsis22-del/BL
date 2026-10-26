@@ -1,0 +1,16 @@
+import assert from 'node:assert/strict';import {readFileSync} from 'node:fs';
+const {api}=await import('data:text/javascript;base64,'+Buffer.from(readFileSync('worker/api.js','utf8')).toString('base64'));
+const map=new Map();const env={LIVE_RELAY_SECRET:'test-secret',BUCKET:{async put(k,v){map.set(k,v)},async get(k){return map.has(k)?{json:async()=>JSON.parse(map.get(k)),text:async()=>map.get(k)}:null},async delete(k){for(const key of Array.isArray(k)?k:[k])map.delete(key)}}};
+const internal=(action,body={},secret='test-secret')=>api(new Request('https://test.local/internal/'+action,{method:'POST',headers:{'X-BL-Service-Key':secret},body:JSON.stringify(body)}),env);
+assert.equal((await internal('create',{},'wrong')).status,403);
+const c=await (await internal('create')).json();assert.ok(c.token.length>=64);assert.ok(!JSON.stringify([...map.values()]).includes(c.token));
+const read=token=>api(new Request('https://test.local/api/live/'+c.id,{headers:{'X-BL-View-Key':token}}),env);
+assert.equal((await read('wrong')).status,404);assert.equal((await (await read(c.token)).json()).position,null);
+assert.equal((await internal('update',{id:c.id,lat:999,lng:19,accuracy:10,measuredAt:Date.now()})).status,400);
+assert.equal((await internal('update',{id:c.id,lat:47.5,lng:19,accuracy:10,measuredAt:Date.now()})).status,200);
+let d=await (await read(c.token)).json();assert.equal(d.position.lat,47.5);assert.ok(!d.tokenHash);
+await internal('status',{id:c.id,status:'paused'});d=await (await read(c.token)).json();assert.equal(d.status,'paused');assert.equal(d.position,null);
+assert.equal((await internal('update',{id:c.id,lat:47.5,lng:19,accuracy:10,measuredAt:Date.now()})).status,409);
+await internal('status',{id:c.id,status:'active'});await internal('stop',{id:c.id});d=await (await read(c.token)).json();assert.equal(d.status,'ended');assert.equal(d.position,null);assert.equal((await internal('update',{id:c.id,lat:47.5,lng:19,accuracy:10,measuredAt:Date.now()})).status,410);
+const meta=JSON.parse(map.get('meta/'+c.id));meta.expiresAt=0;map.set('meta/'+c.id,JSON.stringify(meta));assert.equal((await read(c.token)).status,410);assert.equal(map.size,0);
+console.log('PASS: auth, hashed token, invalid GPS, read/update, pause privacy, revoke, expiry cleanup.');

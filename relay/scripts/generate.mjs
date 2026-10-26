@@ -1,0 +1,3 @@
+import {readFileSync,writeFileSync} from 'node:fs';
+const api=readFileSync('worker/api.js','utf8').replace('export async function api','async function api');
+writeFileSync('worker/index.js',api+'\nconst HTML='+JSON.stringify(readFileSync('viewer.html','utf8'))+';\nexport default {async fetch(request,env){try{const path=new URL(request.url).pathname;if(path.startsWith("/internal/")||path.startsWith("/api/"))return await api(request,env);if(path!=="/")return new Response("Not found",{status:404});return new Response(HTML,{headers:{"Content-Type":"text/html;charset=utf-8","Cache-Control":"no-store","Referrer-Policy":"no-referrer","X-Content-Type-Options":"nosniff"}})}catch{return json({error:"Service unavailable"},503)}}};');
